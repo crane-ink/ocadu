@@ -1,0 +1,68 @@
+#include "TinyFilmFestival.h"
+#include "HCSR04.h"
+#include "fireS.h"  
+#include "fireL.h"  
+
+TinyFilmFestival film;
+
+Animation idleAnim = fireS; 
+Animation goAnim = fireL; 
+
+int triggerPin = 14;          
+int echoPin = 15;             
+int maxDistance = 200;        
+UltraSonicDistanceSensor distanceSensor(triggerPin, echoPin, maxDistance);
+
+float distanceThreshold = 15; 
+int sensorInterval = 200; 
+unsigned long lastSensorRead = 0;
+float currentDistance = 0.0;
+bool isBigFire = false; 
+
+void setup() 
+{
+    Serial.begin(9600);
+    film.begin();
+    film.startAnimation(idleAnim, LOOP); 
+    Serial.println("🕯️");
+}
+
+void loop() 
+{
+    float distance = readDistance();
+    
+    if (distance >= 0) 
+    {
+        Serial.print("检测距离: ");
+        Serial.print(distance);
+        Serial.print(" cm, 阈值: ");
+        Serial.println(distanceThreshold);
+
+        if (distance < distanceThreshold && !isBigFire) 
+        {
+            film.startAnimation(goAnim, LOOP); // 大火苗
+            isBigFire = true;
+            Serial.println("🔥");
+        } 
+        else if (distance >= distanceThreshold && isBigFire) 
+        {
+            film.startAnimation(idleAnim, LOOP); // 小火苗
+            isBigFire = false;
+            Serial.println("🕯️");
+        }
+    }
+    
+    film.update();
+}
+
+// 读取超声波传感器数据
+float readDistance()
+{
+    unsigned long currentTime = millis();
+    if (currentTime - lastSensorRead >= sensorInterval)
+    {
+        currentDistance = distanceSensor.measureDistanceCm();
+        lastSensorRead = currentTime;
+    }
+    return currentDistance;
+}
