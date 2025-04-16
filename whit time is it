@@ -1,0 +1,16 @@
+#include <Servo.h>
+
+Servo lightBlocker;  // 创建舵机对象
+
+void setup() {
+  lightBlocker.attach(9); // 舵机信号线接 Arduino 的 D9 引脚
+}
+
+void loop() {
+  // 阻挡光线（或打开）
+  lightBlocker.write(0);      // 转到 0 度（可改为180，根据安装方向）
+  delay(5000);                // 停顿5秒
+  // 解除阻挡
+  lightBlocker.write(180);    // 转到 180 度
+  delay(5000);                // 停顿5秒
+}
